@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  frontend:
+    image: ghcr.io/caitoor/sort-of-fun-frontend:latest
+    deploy:
+      replicas: 1
+      update_config:
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=proxy"
+        - "traefik.http.routers.frontend.rule=Host(`boardgames.sweavs.de`)"
+        - "traefik.http.routers.frontend.entrypoints=https"
+        - "traefik.http.routers.frontend.tls=true"
+        - "traefik.http.routers.frontend.tls.certresolver=cf"
+        - "traefik.http.services.frontend.loadbalancer.server.port=80"
+        - "traefik.http.services.frontend.loadbalancer.server.scheme=http"
+    networks:
+      - proxy
+
+  backend:
+    image: ghcr.io/caitoor/sort-of-fun-backend:latest
+    environment:
+      - API_PORT=3000
+      - FRONTEND_URL=https://boardgames.sweavs.de
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_COLLECTION=${MONGO_COLLECTION}
+      - BGG_USERNAME=${BGG_USERNAME}
+      - PORT=3000
+    deploy:
+      replicas: 1
+      update_config:
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=proxy"
+        - "traefik.http.routers.backend.rule=Host(`api.boardgames.sweavs.de`)"
+        - "traefik.http.routers.backend.entrypoints=https"
+        - "traefik.http.routers.backend.tls=true"
+        - "traefik.http.routers.backend.tls.certresolver=cf"
+        - "traefik.http.services.backend.loadbalancer.server.port=3000"
+        - "traefik.http.services.backend.loadbalancer.server.scheme=http"
+    networks:
+      - proxy
+      - boardgames_network
+
+  mongo:
+    image: mongo:7
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    deploy:
+      replicas: 1
+      update_config:
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+    ports:
+      - 27027:27017
+    networks:
+      - proxy
+      - boardgames_network
+
+networks:
+  proxy:
+    external: true
+  boardgames_network: {}
+
+volumes:
+  mongo_data:
