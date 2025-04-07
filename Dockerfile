@@ -6,4 +6,4 @@ RUN npm ci --production
 COPY . .
 EXPOSE 3000
 # Starte den Server
-CMD ["node", "server.js"]
+CMD ["node", "src/server.js"]
