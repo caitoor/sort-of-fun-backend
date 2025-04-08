@@ -18,7 +18,7 @@ async function connectDB() {
         await client.connect();
         await client.db("admin").command({ ping: 1 });
         dbInstance = client.db(process.env.DB_NAME || 'boardgames');
-        console.log("Connected to MongoDB Atlas");
+        console.log("Connected to MongoDB");
     }
     return dbInstance;
 }
