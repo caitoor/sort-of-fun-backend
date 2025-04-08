@@ -11,8 +11,8 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use('/api', gamesRouter);
-app.use('/api/themes', themesRouter);
+app.use('/', gamesRouter);
+app.use('/themes', themesRouter);
 
 const PORT = process.env.PORT || 3000;
 
