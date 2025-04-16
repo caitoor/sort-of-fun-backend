@@ -11,24 +11,43 @@ const parser = new XMLParser({ ignoreAttributes: false });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function fetchCollection() {
-    try {
-        console.log(`Fetching BGG collection for user: ${BGG_USERNAME}`);
-        const response = await axios.get(`${BGG_API_URL}/collection?username=${BGG_USERNAME}&own=1&excludesubtype=boardgameexpansion&stats=1`, {
-            timeout: 15000
-        });
-        if (response.status !== 200) {
-            throw new Error(`BGG API error: ${response.status}`);
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+        attempt++;
+        try {
+            console.log(`Fetching BGG collection for user: ${BGG_USERNAME}`);
+            const response = await axios.get(`${BGG_API_URL}/collection?username=${BGG_USERNAME}&own=1&excludesubtype=boardgameexpansion&stats=1`, {
+                timeout: 15000
+            });
+
+            // Wenn Status 202 zurückkommt, ist die Anfrage noch in Bearbeitung
+            if (response.status === 202) {
+                console.warn("BGG API returned status 202, collection not ready yet. Retrying in 5 seconds...");
+                await sleep(5000); // 5 Sekunden warten
+                continue;
+            }
+
+            if (response.status !== 200) {
+                throw new Error(`BGG API error: ${response.status}`);
+            }
+            const jsonData = parser.parse(response.data);
+            if (!jsonData || !jsonData.items || !jsonData.items.item) {
+                console.warn("BGG response is empty or incorrect.");
+                return [];
+            }
+            return Array.isArray(jsonData.items.item) ? jsonData.items.item : [jsonData.items.item];
+        } catch (error) {
+            if (attempt >= maxRetries) {
+
+                console.error("Error fetching BGG collection:", error);
+                throw error;
+            }
+            console.warn("Fetch collection error, retrying in 5 seconds...", error);
+            await sleep(5000);
         }
-        const jsonData = parser.parse(response.data);
-        if (!jsonData || !jsonData.items || !jsonData.items.item) {
-            console.warn("BGG response is empty or incorrect.");
-            return [];
-        }
-        return Array.isArray(jsonData.items.item) ? jsonData.items.item : [jsonData.items.item];
-    } catch (error) {
-        console.error("Error fetching BGG collection:", error);
-        return [];
     }
+    throw new Error("BGG collection not available after multiple attempts.");
 }
 
 async function fetchGameDetails(gameId) {
@@ -51,10 +70,10 @@ async function fetchGameDetails(gameId) {
                     const best = entry.result.find((r) => r["@_value"] === "Best")?.["@_numvotes"] || 0;
                     const recommended = entry.result.find((r) => r["@_value"] === "Recommended")?.["@_numvotes"] || 0;
                     const notRecommended = entry.result.find((r) => r["@_value"] === "Not Recommended")?.["@_numvotes"] || 0;
-                    playerRatings[numPlayers] = { 
-                        best: parseInt(best), 
-                        recommended: parseInt(recommended), 
-                        notRecommended: parseInt(notRecommended) 
+                    playerRatings[numPlayers] = {
+                        best: parseInt(best),
+                        recommended: parseInt(recommended),
+                        notRecommended: parseInt(notRecommended)
                     };
                 });
             }

@@ -1,5 +1,7 @@
 import express from 'express';
 import connectDB from '../db.js';
+import { getAllGames, addGame } from '../models/boardgame.js';
+import { fetchCollection, saveGamesToDatabase } from '../bggFetcher.js';
 
 const router = express.Router();
 
@@ -48,6 +50,35 @@ router.get('/games/:bggId/player-ratings', async (req, res) => {
     } catch (error) {
         console.error(`Error fetching player ratings for game ${bggId}:`, error);
         res.status(500).json({ error: "Failed to fetch player ratings." });
+    }
+});
+
+router.post('/games/refresh', async (req, res) => {
+    try {
+        // Abruf der gesamten BGG-Sammlung
+        const bggGames = await fetchCollection();
+        // Abruf aller bereits vorhandenen Spiele aus der Datenbank
+        const existingGames = await getAllGames();
+        const existingIds = new Set(existingGames.map(game => game.bggId));
+
+        // Filtere die neuen Spiele (die noch nicht in der DB sind)
+        const newGames = bggGames.filter(game => {
+            const id = parseInt(game["@_objectid"], 10);
+            return !existingIds.has(id);
+        });
+
+        // Falls neue Spiele gefunden wurden, in die DB einfügen
+        if (newGames.length > 0) {
+            await saveGamesToDatabase(newGames);
+        }
+
+        res.json({
+            message: 'Refresh complete',
+            newGamesCount: newGames.length
+        });
+    } catch (error) {
+        console.error('Error refreshing games:', error);
+        res.status(500).json({ error: 'Refresh failed' });
     }
 });
 
