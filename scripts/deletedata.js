@@ -1,5 +1,7 @@
 // src/utils/deletedata.js
 
+// deletes database entries for development purposes
+// run with `node src/utils/deletedata.js` or `npm run deletedata`
 import dotenv from 'dotenv';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 dotenv.config();

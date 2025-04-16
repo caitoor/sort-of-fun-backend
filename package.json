@@ -4,10 +4,8 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "setup": "node src/setup.js",
-    "deletedata": "node src/utils/deletedata.js"
+    "deletedata": "node scripts/deletedata.js"
   },
   "keywords": [],
   "author": "",
