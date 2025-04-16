@@ -1,165 +1,173 @@
+// src/bggFetcher.js
+
 import axios from 'axios';
 import { XMLParser } from 'fast-xml-parser';
+import { MAX_RETRIES, SLEEP_MS } from './config.js';
+import { sleep } from './utils/time.js';
 import connectDB from './db.js';
-import dotenv from 'dotenv';
-dotenv.config();
 
-const BGG_USERNAME = process.env.BGG_USERNAME || "default_user";
-const BGG_API_URL = "https://boardgamegeek.com/xmlapi2";
+const BGG_USERNAME = process.env.BGG_USERNAME || 'default_user';
+const BGG_API_URL = 'https://boardgamegeek.com/xmlapi2';
 const parser = new XMLParser({ ignoreAttributes: false });
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
+/**
+ * Fetch the user’s BGG collection, with up to MAX_RETRIES on status 202 or network errors.
+ * Returns an array of raw item objects.
+ */
 export async function fetchCollection() {
-    const maxRetries = 3;
     let attempt = 0;
-    while (attempt < maxRetries) {
+    while (attempt < MAX_RETRIES) {
         attempt++;
         try {
-            console.log(`Fetching BGG collection for user: ${BGG_USERNAME}`);
-            const response = await axios.get(`${BGG_API_URL}/collection?username=${BGG_USERNAME}&own=1&excludesubtype=boardgameexpansion&stats=1`, {
-                timeout: 15000
-            });
+            console.log(`Fetching BGG collection for user: ${BGG_USERNAME} (attempt ${attempt})`);
+            const response = await axios.get(
+                `${BGG_API_URL}/collection?username=${BGG_USERNAME}&own=1&excludesubtype=boardgameexpansion&stats=1`,
+                { timeout: 15000 }
+            );
 
-            // Wenn Status 202 zurückkommt, ist die Anfrage noch in Bearbeitung
+            // 202 = still processing; retry after delay
             if (response.status === 202) {
-                console.warn("BGG API returned status 202, collection not ready yet. Retrying in 5 seconds...");
-                await sleep(5000); // 5 Sekunden warten
+                console.warn('BGG API returned 202; retrying...');
+                await sleep(SLEEP_MS);
                 continue;
             }
 
             if (response.status !== 200) {
                 throw new Error(`BGG API error: ${response.status}`);
             }
+
             const jsonData = parser.parse(response.data);
-            if (!jsonData || !jsonData.items || !jsonData.items.item) {
-                console.warn("BGG response is empty or incorrect.");
+            const items = jsonData?.items?.item;
+            if (!items) {
+                console.warn('BGG response empty or malformed');
                 return [];
             }
-            return Array.isArray(jsonData.items.item) ? jsonData.items.item : [jsonData.items.item];
-        } catch (error) {
-            if (attempt >= maxRetries) {
 
-                console.error("Error fetching BGG collection:", error);
-                throw error;
+            return Array.isArray(items) ? items : [items];
+        } catch (err) {
+            if (attempt >= MAX_RETRIES) {
+                console.error('Failed to fetch collection after retries:', err);
+                throw err;
             }
-            console.warn("Fetch collection error, retrying in 5 seconds...", error);
-            await sleep(5000);
+            console.warn('Error fetching collection; retrying...', err);
+            await sleep(SLEEP_MS);
         }
     }
-    throw new Error("BGG collection not available after multiple attempts.");
+
+    throw new Error('Unable to fetch BGG collection');
 }
 
-async function fetchGameDetails(gameId) {
-    await sleep(2000);
+/**
+ * Fetch detailed stats (complexity + playerRatings poll) for one game ID.
+ */
+export async function fetchGameDetails(gameId) {
+    await sleep(SLEEP_MS);
     try {
         console.log(`Fetching details for game ID: ${gameId}`);
-        const response = await axios.get(`${BGG_API_URL}/thing?id=${gameId}&stats=1`, { timeout: 10000 });
+        const response = await axios.get(`${BGG_API_URL}/thing?id=${gameId}&stats=1`, {
+            timeout: 10000
+        });
+
         if (response.status !== 200) {
-            throw new Error(`BGG API error for thing: ${response.status}`);
+            throw new Error(`BGG API thing error: ${response.status}`);
         }
+
         const jsonData = parser.parse(response.data);
-        const item = jsonData.items.item;
-        const ratings = item.statistics.ratings;
+        const item = jsonData.items?.item;
+        const ratings = item?.statistics?.ratings;
         const playerRatings = {};
-        if (item.poll) {
-            const numPlayerPoll = item.poll.find((poll) => poll["@_name"] === "suggested_numplayers");
-            if (numPlayerPoll && numPlayerPoll.results) {
-                numPlayerPoll.results.forEach((entry) => {
-                    const numPlayers = entry["@_numplayers"];
-                    const best = entry.result.find((r) => r["@_value"] === "Best")?.["@_numvotes"] || 0;
-                    const recommended = entry.result.find((r) => r["@_value"] === "Recommended")?.["@_numvotes"] || 0;
-                    const notRecommended = entry.result.find((r) => r["@_value"] === "Not Recommended")?.["@_numvotes"] || 0;
-                    playerRatings[numPlayers] = {
-                        best: parseInt(best),
-                        recommended: parseInt(recommended),
-                        notRecommended: parseInt(notRecommended)
-                    };
-                });
-            }
+
+        const poll = item?.poll;
+        if (Array.isArray(poll)) {
+            const numPlayerPoll = poll.find(p => p['@_name'] === 'suggested_numplayers');
+            numPlayerPoll?.results?.forEach(entry => {
+                const count = entry['@_numplayers'];
+                const best = parseInt(entry.result.find(r => r['@_value'] === 'Best')?.['@_numvotes'] || '0', 10);
+                const rec = parseInt(entry.result.find(r => r['@_value'] === 'Recommended')?.['@_numvotes'] || '0', 10);
+                const notRec = parseInt(entry.result.find(r => r['@_value'] === 'Not Recommended')?.['@_numvotes'] || '0', 10);
+                playerRatings[count] = { best, recommended: rec, notRecommended: notRec };
+            });
         }
+
         return {
-            complexity: ratings.averageweight ? parseFloat(ratings.averageweight["@_value"]) : null,
+            complexity: ratings?.averageweight?.['@_value']
+                ? parseFloat(ratings.averageweight['@_value'])
+                : null,
             playerRatings
         };
-    } catch (error) {
-        console.error(`Error fetching details for game ID ${gameId}:`, error);
+    } catch (err) {
+        console.error(`Error fetching details for ${gameId}:`, err);
         return null;
     }
 }
 
+/**
+ * Insert or update an array of raw BGG items into MongoDB.
+ * Uses upsert: existing bggId docs are replaced, new ones are created.
+ */
 export async function saveGamesToDatabase(games) {
-    if (!games || games.length === 0) {
-        console.warn("No valid games to save.");
+    if (!Array.isArray(games) || games.length === 0) {
+        console.warn('No games to save');
         return;
     }
 
     const db = await connectDB();
-    let savedCount = 0;
+    let count = 0;
 
-    for (const game of games) {
-        console.log(`Processing game: ${game.name?.["#text"]}`);
-        const bggId = parseInt(game["@_objectid"]);
-        const name = game.name?.["#text"] || null;
-        const minPlayers = parseInt(game.stats?.["@_minplayers"]) || 1;
-        const maxPlayers = parseInt(game.stats?.["@_maxplayers"]) || 1;
-        const playtime = parseInt(game.stats?.["@_playingtime"]) || 30;
-        const minPlaytime = parseInt(game.stats?.["@_minplaytime"]) || playtime;
-        const maxPlaytime = parseInt(game.stats?.["@_maxplaytime"]) || playtime;
-        const bggRating = game.stats?.rating?.average?.["@_value"] ? parseFloat(game.stats.rating.average["@_value"]) : null;
-        const bayesAverage = game.stats?.rating?.bayesaverage?.["@_value"] ? parseFloat(game.stats.rating.bayesaverage["@_value"]) : null;
-        const stdDeviation = game.stats?.rating?.stddev?.["@_value"] ? parseFloat(game.stats.rating.stddev["@_value"]) : null;
-        const usersRated = game.stats?.rating?.usersrated?.["@_value"] ? parseInt(game.stats.rating.usersrated["@_value"]) : 0;
-        const owned = game.stats?.rating?.owned?.["@_value"] ? parseInt(game.stats.rating.owned["@_value"]) : 0;
-        const trading = game.stats?.rating?.trading?.["@_value"] ? parseInt(game.stats.rating.trading["@_value"]) : 0;
-        const wanting = game.stats?.rating?.wanting?.["@_value"] ? parseInt(game.stats.rating.wanting["@_value"]) : 0;
-        const wishing = game.stats?.rating?.wishing?.["@_value"] ? parseInt(game.stats.rating.wishing["@_value"]) : 0;
-        const numComments = game.stats?.rating?.numcomments?.["@_value"] ? parseInt(game.stats.rating.numcomments["@_value"]) : 0;
-        const numWeights = game.stats?.rating?.numweights?.["@_value"] ? parseInt(game.stats.rating.numweights["@_value"]) : 0;
-        const averageWeight = game.stats?.rating?.averageweight?.["@_value"] ? parseFloat(game.stats.rating.averageweight["@_value"]) : null;
-
-        const details = await fetchGameDetails(bggId);
-        const complexity = details?.complexity || averageWeight;
-        const playerRatingsData = details?.playerRatings || {};
-
-        await db.collection('games').insertOne({
-            bggId,
-            name,
-            minPlayers,
-            maxPlayers,
-            playtime,
-            minPlaytime,
-            maxPlaytime,
-            complexity,
-            bggRating,
-            bayesAverage,
-            stdDeviation,
-            usersRated,
-            owned,
-            trading,
-            wanting,
-            wishing,
-            numComments,
-            numWeights,
-            averageWeight,
-            thumbnail: game.thumbnail || null,
-            image: game.image || null,
-            yearPublished: game.yearpublished ? parseInt(game.yearpublished) : null,
+    for (const raw of games) {
+        const id = parseInt(raw['@_objectid'], 10);
+        const doc = {
+            bggId: id,
+            name: raw.name?.['#text'] || null,
+            minPlayers: parseInt(raw.stats?.['@_minplayers'] || '1', 10),
+            maxPlayers: parseInt(raw.stats?.['@_maxplayers'] || '1', 10),
+            playtime: parseInt(raw.stats?.['@_playingtime'] || '0', 10),
+            minPlaytime: parseInt(raw.stats?.['@_minplaytime'] || '0', 10),
+            maxPlaytime: parseInt(raw.stats?.['@_maxplaytime'] || '0', 10),
+            complexity: raw.stats?.rating?.averageweight?.['@_value']
+                ? parseFloat(raw.stats.rating.averageweight['@_value'])
+                : null,
+            bggRating: raw.stats?.rating?.average?.['@_value']
+                ? parseFloat(raw.stats.rating.average['@_value'])
+                : null,
+            bayesAverage: raw.stats?.rating?.bayesaverage?.['@_value']
+                ? parseFloat(raw.stats.rating.bayesaverage['@_value'])
+                : null,
+            stdDeviation: raw.stats?.rating?.stddev?.['@_value']
+                ? parseFloat(raw.stats.rating.stddev['@_value'])
+                : null,
+            usersRated: parseInt(raw.stats?.rating?.usersrated?.['@_value'] || '0', 10),
+            thumbnail: raw.thumbnail || null,
+            image: raw.image || null,
+            yearPublished: raw.yearpublished ? parseInt(raw.yearpublished, 10) : null,
             fetchedAt: new Date()
-        });
+        };
 
-        for (const [numPlayersKey, ratings] of Object.entries(playerRatingsData)) {
-            await db.collection('player_ratings').insertOne({
-                gameId: bggId,
-                numPlayers: parseInt(numPlayersKey),
-                bestVotes: ratings.best,
-                recommendedVotes: ratings.recommended,
-                notRecommendedVotes: ratings.notRecommended
-            });
+        await db.collection('games').updateOne(
+            { bggId: id },
+            { $set: doc },
+            { upsert: true }
+        );
+
+        // fetch and store playerRatings separately
+        const details = await fetchGameDetails(id);
+        if (details?.playerRatings) {
+            // remove old ratings
+            await db.collection('player_ratings').deleteMany({ gameId: id });
+            const entries = Object.entries(details.playerRatings).map(([num, votes]) => ({
+                gameId: id,
+                numPlayers: parseInt(num, 10),
+                bestVotes: votes.best,
+                recommendedVotes: votes.recommended,
+                notRecommendedVotes: votes.notRecommended
+            }));
+            if (entries.length) {
+                await db.collection('player_ratings').insertMany(entries);
+            }
         }
 
-        savedCount++;
+        count++;
     }
 
-    console.log(`Successfully saved ${savedCount} games to the database.`);
+    console.log(`Saved or updated ${count} games`);
 }

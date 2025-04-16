@@ -3,6 +3,20 @@ import connectDB from '../db.js';
 
 const router = express.Router();
 
+router.get('/', async (req, res) => {
+    try {
+        const db = await connectDB();
+        const themesCursor = await db.collection('game_themes').aggregate([
+            { $group: { _id: "$theme" } }
+        ]).toArray();
+        const themes = themesCursor.map(doc => doc._id);
+        res.json(themes);
+    } catch (error) {
+        console.error("Error fetching themes:", error);
+        res.status(500).json({ error: "Error fetching themes" });
+    }
+});
+
 router.get('/:bggId', async (req, res) => {
     try {
         const db = await connectDB();
@@ -31,7 +45,7 @@ router.post('/:bggId', async (req, res) => {
             return res.status(404).json({ error: "Game not found." });
         }
 
-        const existingTheme = await db.collection('game_themes').findOne({ 
+        const existingTheme = await db.collection('game_themes').findOne({
             bggId,
             theme: { $regex: new RegExp(`^${theme}$`, 'i') }
         });
@@ -63,20 +77,6 @@ router.delete('/:bggId/:theme', async (req, res) => {
         res.status(204).end();
     } catch (error) {
         res.status(500).json({ error: "Error deleting theme" });
-    }
-});
-
-router.get('/', async (req, res) => {
-    try {
-        const db = await connectDB();
-        const themesCursor = await db.collection('game_themes').aggregate([
-            { $group: { _id: "$theme" } }
-        ]).toArray();
-        const themes = themesCursor.map(doc => doc._id);
-        res.json(themes);
-    } catch (error) {
-        console.error("Error fetching themes:", error);
-        res.status(500).json({ error: "Error fetching themes" });
     }
 });
 
