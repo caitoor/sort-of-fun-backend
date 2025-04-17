@@ -1,16 +1,17 @@
 // src/setup.js
 
-import connectDB from './db.js';
-import { fetchCollection, saveGamesToDatabase } from './bggFetcher.js';
+import connectDB from './db/mongoose.js';
+import BoardGame from './models/BoardGame.js';
+import { fetchCollection, saveGamesToDatabase } from './services/bggService.js';
 
 /**
- * Initialize the MongoDB database on first run.
- * - If no games exist, fetch from BGG and save them.
- * - Otherwise, skip setup.
+ * On first run, populate the database if empty.
  */
 export default async function setup() {
-    const db = await connectDB();
-    const count = await db.collection('games').countDocuments();
+    await connectDB();
+
+    // Count via Mongoose model
+    const count = await BoardGame.countDocuments();
 
     if (count === 0) {
         console.log('🚀 Database empty – fetching initial collection from BGG...');

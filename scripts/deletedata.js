@@ -16,10 +16,10 @@ const client = new MongoClient(uri, {
 });
 
 const collectionsToDrop = [
-    'games',
-    'game_settings',
-    'player_ratings',
-    'game_themes',
+    'boardgames',
+    'playerratings',
+    'meta',
+    
 ];
 
 (async () => {
