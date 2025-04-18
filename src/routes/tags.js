@@ -10,6 +10,7 @@ const router = express.Router();
  * Returns a distinct array of all tags.
  */
 router.get('/', async (req, res) => {
+  console.log('calling GET /tags ...');
   try {
     const tags = await Tag.distinct('tag');
     res.json(tags);
