@@ -129,7 +129,6 @@ export async function fetchGameDetails(bggId) {
   return null;
 }
 
-
 /**
  * Upsert one game document + its playerRatings.
  */
