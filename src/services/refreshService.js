@@ -1,6 +1,6 @@
 // src/jobs/refreshUtils.js
-import connectDB from '../db/mongoose.js';
 import mongoose from 'mongoose';
+import connectDB from '../db/mongoose.js';
 import { fetchCollection, saveGamesToDatabase, fetchGameDetails } from '../services/bggService.js';
 import BoardGame from '../models/BoardGame.js';
 import PlayerRating from '../models/PlayerRating.js';
