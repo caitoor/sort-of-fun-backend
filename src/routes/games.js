@@ -4,6 +4,8 @@ import express from 'express';
 import BoardGame from '../models/BoardGame.js';
 import PlayerRating from '../models/PlayerRating.js';
 import { manualUpdateHandler, manualCollectionRefresh } from '../controllers/refreshController.js';
+import { countGames } from '../controllers/gamesController.js';
+import { listExpansionsForGame } from '../controllers/expansionsController.js';
 
 const router = express.Router();
 
@@ -59,6 +61,13 @@ router.get('/:bggId/player-ratings', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch player ratings' });
   }
 });
+
+
+/** base game count */
+router.get('/count', countGames);
+
+/** expansions for one base game */
+router.get('/:bggId/expansions', listExpansionsForGame);
 
 /**
  * POST /games/refresh

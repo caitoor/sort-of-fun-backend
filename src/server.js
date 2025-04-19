@@ -7,6 +7,7 @@ import cors from 'cors';
 import connectDB from './db/mongoose.js';
 import setup from './setup.js';
 import gamesRouter from './routes/games.js';
+import expansionsRouter from './routes/expansions.js';
 import tagsRouter from './routes/tags.js';
 import BoardGame from './models/BoardGame.js';
 
@@ -18,10 +19,12 @@ app.use(cors());
 
 /**
  * Mount API routers:
- *   GET/POST /games        → gamesRouter
- *   GET/POST /tags         → tagsRouter
+ *   GET/POST /games        -> gamesRouter
+ *   GET/POST /expansions   -> expansionsRouter         
+ *   GET/POST /tags         -> tagsRouter
  */
 app.use('/games', gamesRouter);
+app.use('/expansions', expansionsRouter);
 app.use('/tags', tagsRouter);
 
 /**

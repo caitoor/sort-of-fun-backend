@@ -1,0 +1,225 @@
+node .\scripts\updateExistingGames.js
+🔗 Mongoose connected to "boardgames"
+⏳ Fetching full BGG collection…
+ℹ️  Retrieved 242 games from BGG
+🔄 Updating all games (throttle: 2000ms)…
+fetchGameDetails(423517) {
+  thumbnail: 'https://cf.geekdo-images.com/77nPGdBzl0m03yIn516RfA__thumb/img/_KfIjEhwo8ZC5Y2xpzeTICwx0xI=/fit-in/200x150/filters:strip_icc()/pic8349618.png',
+  image: 'https://cf.geekdo-images.com/77nPGdBzl0m03yIn516RfA__original/img/Vfhn5Yuwfulr32hok5qaUjz52M8=/0x0/filters:format(png)/pic8349618.png',
+  name: [
+    {
+      '@_type': 'primary',
+      '@_sortindex': '1',
+      '@_value': '3 Chapters'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': '3 Capítulos'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': '3 rozdziały'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': 'A három fejezet'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': 'C&#039;era 3 volte'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': 'Once upon a Draft'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': 'Za sedmero kartami'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': 'Τα 3 Κεφάλαια'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': 'Битва сказок'
+    },
+    {
+      '@_type': 'alternate',
+      '@_sortindex': '1',
+      '@_value': '세 번째 이야기'
+    }
+  ],
+  description: 'Once upon a time, there was a magical book of fairy tales that had three chapters. You will now live through that book in 3 Chapters, a trick-taking game with three game phases:&#10;&#10;&bull; Chapter 1: Start with eight cards in hand, choose one, then pass the remaining cards clockwise. Continue doing 
+this until all cards are drafted.&#10;&#10;&bull; Chapter 2: Play one card each. The highest card wins the 
+trick and receives two points. Additionally, compare the skills on your cards with one another as this can 
+earn you additional points.&#10;&#10;&bull; Chapter 3: Finally, evaluate the skills within your selected hand cards. They can bring additional points in this chapter.&#10;&#10;If you choose the fairy tale creatures wisely at the beginning, you can win plenty of tricks and collect lots of points. Clever card combinations can also bring points without tricks because everyone knows, say, that Hansel and Gretel are particularly 
+strong as a team...&#10;&#10;',
+  yearpublished: { '@_value': '2024' },
+  minplayers: { '@_value': '2' },
+  maxplayers: { '@_value': '6' },
+  poll: [
+    {
+      results: [Array],
+      '@_name': 'suggested_numplayers',
+      '@_title': 'User Suggested Number of Players',
+      '@_totalvotes': '25'
+    },
+    {
+      results: [Object],
+      '@_name': 'suggested_playerage',
+      '@_title': 'User Suggested Player Age',
+      '@_totalvotes': '6'
+    },
+    {
+      results: [Object],
+      '@_name': 'language_dependence',
+      '@_title': 'Language Dependence',
+      '@_totalvotes': '1'
+    }
+  ],
+  'poll-summary': {
+    result: [ [Object], [Object] ],
+    '@_name': 'suggested_numplayers',
+    '@_title': 'User Suggested Number of Players'
+  },
+  playingtime: { '@_value': '30' },
+  minplaytime: { '@_value': '30' },
+  maxplaytime: { '@_value': '30' },
+  minage: { '@_value': '10' },
+  link: [
+    {
+      '@_type': 'boardgamecategory',
+      '@_id': '1002',
+      '@_value': 'Card Game'
+    },
+    {
+      '@_type': 'boardgamecategory',
+      '@_id': '1010',
+      '@_value': 'Fantasy'
+    },
+    {
+      '@_type': 'boardgamemechanic',
+      '@_id': '2984',
+      '@_value': 'Closed Drafting'
+    },
+    {
+      '@_type': 'boardgamemechanic',
+      '@_id': '2004',
+      '@_value': 'Set Collection'
+    },
+    {
+      '@_type': 'boardgamemechanic',
+      '@_id': '2009',
+      '@_value': 'Trick-taking'
+    },
+    {
+      '@_type': 'boardgamefamily',
+      '@_id': '22783',
+      '@_value': 'Admin: Better Description Needed!'
+    },
+    {
+      '@_type': 'boardgamefamily',
+      '@_id': '76458',
+      '@_value': 'Digital Implementations: BrettspielWelt'
+    },
+    {
+      '@_type': 'boardgamefamily',
+      '@_id': '73596',
+      '@_value': 'Digital Implementations: TableTop Simulator Mod (TTS)'
+    },
+    {
+      '@_type': 'boardgameexpansion',
+      '@_id': '431857',
+      '@_value': '3 Chapters: Flaschengeist Jinny'
+    },
+    {
+      '@_type': 'boardgamedesigner',
+      '@_id': '92087',
+      '@_value': 'Joe Hout'
+    },
+    {
+      '@_type': 'boardgameartist',
+      '@_id': '106147',
+      '@_value': 'Jan Bintakies'
+    },
+    { '@_type': 'boardgamepublisher', '@_id': '8', '@_value': 'AMIGO' },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '267',
+      '@_value': '999 Games'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '4785',
+      '@_value': 'Ghenos Games'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '155',
+      '@_value': 'Gigamic'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '6214',
+      '@_value': 'Kaissa Chess & Games'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '8291',
+      '@_value': 'Korea Boardgames'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '9325',
+      '@_value': 'Lifestyle Boardgames Ltd'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '7772',
+      '@_value': 'Mercurio'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '7992',
+      '@_value': 'MINDOK'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '7466',
+      '@_value': 'Rebel Sp. z o.o.'
+    },
+    {
+      '@_type': 'boardgamepublisher',
+      '@_id': '36563',
+      '@_value': 'Reflexshop'
+    }
+  ],
+  statistics: {
+    ratings: {
+      usersrated: [Object],
+      average: [Object],
+      bayesaverage: [Object],
+      ranks: [Object],
+      stddev: [Object],
+      median: [Object],
+      owned: [Object],
+      trading: [Object],
+      wanting: [Object],
+      wishing: [Object],
+      numcomments: [Object],
+      numweights: [Object],
+      averageweight: [Object]
+    },
+    '@_page': '1'
+  },
+  '@_type': 'boardgame',
+  '@_id': '423517'

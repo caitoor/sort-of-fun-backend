@@ -2,8 +2,6 @@
 
 import BoardGame from '../models/BoardGame.js';
 import PlayerRating from '../models/PlayerRating.js';
-import { refreshCollectionIfStale, refreshCollection } from '../jobs/refreshCollection.js';
-import { refreshStaleGames } from '../jobs/refreshStaleGames.js';
 
 /**
  * GET /games
@@ -86,5 +84,19 @@ export async function manualUpdate(req, res) {
     } catch (err) {
         console.error('manualUpdate error:', err);
         res.status(500).json({ error: 'Manual update failed' });
+    }
+}
+
+
+/**
+ * GET /games/count
+ */
+export async function countGames(req, res) {
+    try {
+        const count = await gameService.countBaseGames();
+        res.json({ count });
+    } catch (err) {
+        console.error('countGames error:', err);
+        res.status(500).json({ error: 'Failed to count games' });
     }
 }
