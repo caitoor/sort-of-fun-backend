@@ -12,7 +12,7 @@ export async function manualUpdateHandler(req, res) {
     try {
         const newCount = await refreshNewGames();
 
-        await refreshStaleGames();
+        await refreshGameDetails({ checkAge: true, sleepMs: SLEEP_MS });
 
         res.json({ newGamesCount: newCount });
     } catch (err) {

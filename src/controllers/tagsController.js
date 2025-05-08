@@ -35,25 +35,31 @@ export async function getGameTags(req, res) {
  * POST /tags/:bggId
  * Adds a tag to the specified game.
  */
+// src/controllers/tagsController.js
+
 export async function addTag(req, res) {
+    console.log("📝 POST /tags/:bggId payload — params:", req.params, "body:", req.body);
+  
     const bggId = parseInt(req.params.bggId, 10);
     let { tag } = req.body;
     if (!tag) {
-        return res.status(400).json({ error: 'Tag is required' });
+      return res.status(400).json({ error: 'Tag is required' });
     }
     tag = tag.trim();
-
+  
     try {
-        const doc = await Tag.create({ bggId, tag });
-        res.status(201).json({ tag: doc.tag });
+      const doc = await Tag.create({ bggId, tag });
+      return res.status(201).json({ tag: doc.tag });
     } catch (error) {
-        if (error.code === 11000) {
-            return res.status(409).json({ error: 'Tag already exists for this game' });
-        }
-        console.error(`addTag(${bggId}) error:`, error);
-        res.status(500).json({ error: 'Failed to add tag' });
+      if (error.code === 11000) {
+        // Duplicate key
+        return res.status(409).json({ error: 'Tag already exists for this game' });
+      }
+      console.error(`addTag(${bggId}) error:`, error);
+      res.status(500).json({ error: 'Failed to add tag' });
     }
-}
+  }
+
 
 /**
  * DELETE /tags/:bggId/:tag

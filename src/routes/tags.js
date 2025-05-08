@@ -42,6 +42,10 @@ router.get('/:bggId', async (req, res) => {
 router.post('/:bggId', async (req, res) => {
   const bggId = parseInt(req.params.bggId, 10);
   let { tag } = req.body;
+
+  // <<< logging payload for debugging >>>
+  console.log(`POST /tags/${bggId} called with`, { bggId, tag });
+
   if (!tag) {
     return res.status(400).json({ error: 'Tag value is required' });
   }
@@ -51,6 +55,7 @@ router.post('/:bggId', async (req, res) => {
     const doc = await Tag.create({ bggId, tag });
     res.status(201).json({ tag: doc.tag });
   } catch (error) {
+    // duplicate‐key error from unique index
     if (error.code === 11000) {
       return res.status(409).json({ error: 'Tag already exists for this game' });
     }
